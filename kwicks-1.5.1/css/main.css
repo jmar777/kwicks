@@ -1,0 +1,51 @@
+/* This css file serves as a template for styling your kwicks.  Feel free to modify, but please make note of the comments - some of them are important. */
+body {
+	background-color: #1d1e21;
+	padding: 50px;
+}
+.kwicks {
+	/* recommended styles for kwicks ul container */
+	list-style: none;
+	position: relative;
+	margin: 0;
+	padding: 0;
+}
+.kwicks li{
+	/* these are required, but the values are up to you (must be pixel) */
+	width: 125px;
+	height: 100px;
+
+	/*do not change these */
+	display: block;
+	overflow: hidden;
+	padding: 0;  /* if you need padding, do so with an inner div (or implement your own box-model hack) */
+	cursor: pointer;
+}
+.kwicks.horizontal li {
+	/* This is optional and will be disregarded by the script.  However, it should be provided for non-JS enabled browsers. */
+	margin-right: 5px; /*Set to same as spacing option. */	
+	float: left;
+}
+.kwicks.vertical  li{
+	/* This is optional and will be disregarded by the script.  However, it should be provided for non-JS enabled browsers. */
+	margin-bottom: 5px; /*Set to same as spacing option. */	
+}
+
+#kwick_1 { 
+	background-color: #53b388;
+}
+#kwick_2 {
+	background-color: #5a69a9;
+}
+#kwick_3 {
+	background-color: #c26468;
+}
+#kwick_4 { 
+	background-color: #bf7cc7;
+}
+.kwicks.horizontal #kwick_4 {
+	margin-right: none; /* cancel margin on last kiwck (if you set a margin above) */
+}
+.kwicks.vertical #kwick_4 {
+	margin-bottom: none; /* cancel margin on last kiwck (if you set a margin above) */
+}
