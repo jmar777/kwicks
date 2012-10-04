@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Kwicks 1.5.1 Example: Vertical Arrangement</title>
+		<style type='text/css'>
+			.kwicks {
+				/* recommended styles for kwicks ul container */
+				display: block;
+				list-style: none;
+				position: relative;
+				margin: 0;
+				padding: 0;
+			}
+			.kwicks li {
+				/* required, but the values are up to you (must be pixels) */
+				width: 125px;
+				height: 100px;
+				/* margin should be same as spacing option */
+				margin-bottom: 3px;
+
+				/* do not change these */
+				display: block;
+				overflow: hidden;
+				padding: 0;
+				cursor: pointer;
+			}
+			#kwick_1 {
+				background-color: #FF5100;
+			}
+			#kwick_2 {
+				background-color: #B33900;
+			}
+			#kwick_3 {
+				background-color: #FFD000;
+			}
+			#kwick_4 {
+				background-color: #B39200;
+				margin-bottom: none;
+			}
+		</style>
+	</head>
+	<body>
+		<ul class="kwicks">
+			<li id="kwick_1"></li>
+			<li id="kwick_2"></li>
+			<li id="kwick_3"></li>
+			<li id="kwick_4"></li>
+		</ul>
+
+		<script type='text/javascript' src='../js/jquery-1.2.6.min.js'></script>
+		<script type='text/javascript' src='../js/jquery.kwicks-1.5.js'></script>
+		<script type='text/javascript'>
+			$(function() {
+				$('.kwicks').kwicks({
+					max : 205,
+					spacing : 3,
+					isVertical : true
+				});
+			});
+		</script>
+	</body>
+</html>
