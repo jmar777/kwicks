@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Kwicks Active/Expanded Classes Example</title>
+
+		<link rel='stylesheet' type='text/css' href='../jquery.kwicks.css' />
+		<style type='text/css'>
+			.kwicks {
+				width: 515px;
+				height: 100px;
+			}
+			.kwicks > li {
+				width: 125px;
+				height: 100px;
+				background-color: #53b388;
+				/* overridden by kwicks but good for when JavaScript is disabled */
+				margin-left: 5px;
+				float: left;
+			}
+			.kwicks > li.kwicks-expanded { background-color: #86e6bb; }
+			.kwicks > li.kwicks-selected { background-color: #ff7744; }
+		</style>
+	</head>
+	
+	<body>
+		<ul id='example' class='kwicks kwicks-horizontal'>
+			<li></li>
+			<li></li>
+			<li></li>
+			<li></li>
+		</ul>
+
+		<script src='js/jquery-1.8.1.min.js' type='text/javascript'></script>
+		<script src='../jquery.kwicks.js' type='text/javascript'></script>
+		
+		<script type='text/javascript'>
+			$(function() {
+				$('.kwicks').kwicks({
+					size: 125,
+					maxSize : 250,
+					spacing : 5,
+					behavior: 'menu'
+				});
+			});
+		</script>
+	</body>
+</html>
