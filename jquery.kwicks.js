@@ -14,13 +14,11 @@
 	 */
 	var methods = {
 		init: function(opts) {
-			var o = $.extend({ duration: 500 }, opts);
+			var o = $.extend({ duration: 500, spacing: 5 }, opts);
 
 			// validate options
 			if (typeof o.size === 'undefined')
 				throw new Error('Kwicks option "size" is required');
-			if (typeof o.spacing === 'undefined')
-				throw new Error('Kwicks option "spacing" is required');
 			if (typeof o.minSize === 'undefined' && typeof o.maxSize === 'undefined')
 				throw new Error('One of Kwicks options "minSize" or "maxSize" is required');
 			if (typeof o.minSize !== 'undefined' && typeof o.maxSize !== 'undefined')
