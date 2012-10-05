@@ -17,15 +17,20 @@
 			var o = $.extend({ duration: 500 }, opts);
 
 			// validate options
-			if (typeof o.size === 'undefined') throw new Error('Kwicks option "size" is required');
-			if (typeof o.spacing === 'undefined') throw new Error('Kwicks option "spacing" is required');
+			if (typeof o.size === 'undefined')
+				throw new Error('Kwicks option "size" is required');
+			if (typeof o.spacing === 'undefined')
+				throw new Error('Kwicks option "spacing" is required');
 			if (typeof o.minSize === 'undefined' && typeof o.maxSize === 'undefined')
 				throw new Error('One of Kwicks options "minSize" or "maxSize" is required');
 			if (typeof o.minSize !== 'undefined' && typeof o.maxSize !== 'undefined')
 				throw new Error('Kwicks options "minSize" and "maxSize" may not both be set');
-			if (o.minSize > o.size) throw new Error('Kwicks option "minSize" may not be greater than "size"');
-			if (o.maxSize < o.size) throw new Error('Kwicks option "maxSize" may not be less than "size"');
-			if (o.behavior && o.behavior !== 'menu') throw new Error('Unrecognized Kwicks behavior specified: ' + o.behavior);
+			if (o.minSize > o.size)
+				throw new Error('Kwicks option "minSize" may not be greater than "size"');
+			if (o.maxSize < o.size)
+				throw new Error('Kwicks option "maxSize" may not be less than "size"');
+			if (o.behavior && o.behavior !== 'menu')
+				throw new Error('Unrecognized Kwicks behavior specified: ' + o.behavior);
 			
 			return this.each(function() {
 				$(this).data('kwicks', new Kwick(this, o));
@@ -34,10 +39,29 @@
 		expand: function(index) {
 			return this.each(function() {
 				var $this = $(this),
-					kwick = $this.data('kwicks');
-				if (kwick) return $this.trigger('expand.kwicks', { index: index });
-				if ((kwick = $this.parent().data('kwicks'))) return $this.parent().kwicks('expand', $this.index());
-				throw new Error('Cannot call "expand" method on a non-Kwicks element');
+					$panel;
+
+				// if this is a container, then we require a panel index
+				if ($this.is('.kwicks-processed')) {
+					if (typeof index !== 'number')
+						throw new Error('Kwicks method "expand" requires an index');
+					// protect against jquery's eq(-index) feature
+					if (index >= 0) $panel = $this.children().eq(index);
+				}
+				// otherwise `this` should be a panel already
+				else if ($this.parent().is('.kwicks-processed')) {
+					// don't need panel in this scenario
+					$panel = $this;
+					index = $panel.index();
+				}
+				// if it's not a container or a panel, then this was an erroneous method call
+				else {
+					throw new Error('Cannot call "expand" method on a non-Kwicks element');
+				}
+
+				// try to trigger on panel, but default to container if panel doesn't exist
+				var $target = ($panel && $panel.length) ? $panel : $this;
+				$target.trigger('expand.kwicks', { index: index });				
 			});
 		},
 		expanded: function() {
@@ -48,10 +72,29 @@
 		select: function(index) {
 			return this.each(function() {
 				var $this = $(this),
-					kwick = $this.data('kwicks');
-				if (kwick) return $this.trigger('select.kwicks', { index: index });
-				if ((kwick = $this.parent().data('kwicks'))) return $this.parent().kwicks('select', $this.index());
-				throw new Error('Cannot call "select" method on a non-Kwicks element');
+					$panel;
+
+				// if this is a container, then we require a panel index
+				if ($this.is('.kwicks-processed')) {
+					if (typeof index !== 'number')
+						throw new Error('Kwicks method "select" requires an index');
+					// protect against jquery's eq(-index) feature
+					if (index >= 0) $panel = $this.children().eq(index);
+				}
+				// otherwise `this` should be a panel already
+				else if ($this.parent().is('.kwicks-processed')) {
+					// don't need panel in this scenario
+					$panel = $this;
+					index = $panel.index();
+				}
+				// if it's not a container or a panel, then this was an erroneous method call
+				else {
+					throw new Error('Cannot call "expand" method on a non-Kwicks element');
+				}
+
+				// try to trigger on panel, but default to container if panel doesn't exist
+				var $target = ($panel && $panel.length) ? $panel : $this;
+				$target.trigger('select.kwicks', { index: index });				
 			});
 		},
 		selected: function() {
@@ -82,7 +125,7 @@
 		_default: function(e, data) {
 			if (e.namespace !== 'kwicks') return;
 			var $el = $(e.target);
-			var kwick = $el.data('kwicks');
+			var kwick = $el.data('kwicks') || $el.parent().data('kwicks');
 			// should we throw here?
 			if (!kwick) return;
 			kwick.expand(data.index);
@@ -96,7 +139,7 @@
 		_default: function(e, data) {
 			if (e.namespace !== 'kwicks') return;
 			var $el = $(e.target);
-			var kwick = $el.data('kwicks');
+			var kwick = $el.data('kwicks') || $el.parent().data('kwicks');
 			// should we throw here?
 			if (!kwick) return;
 			kwick.select(data.index);
