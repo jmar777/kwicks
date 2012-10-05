@@ -1,0 +1,32 @@
+/*
+ *  This file contains styles that are common to all kwicks instances.  Note that each kwicks instance requires
+ *  additional styling - please see the examples for more info.
+ */
+
+.kwicks {
+	display: block;
+	list-style-type: none;
+	list-style: none;
+	position: relative;
+	margin: 0;
+	padding: 0;
+}
+.kwicks > * {
+	display: block;
+	overflow: hidden;
+	padding: 0;
+	margin: 0;
+}
+.kwicks.kwicks-processed > * {
+	margin: 0;
+	position: absolute;
+}
+.kwicks-horizontal > * {
+	float: left;
+}
+.kwicks-horizontal > :first-child {
+	margin-left: 0;
+}
+.kwicks-vertical > :first-child {
+	margin-top: 0;
+}
