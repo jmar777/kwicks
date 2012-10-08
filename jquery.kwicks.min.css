@@ -1,0 +1,8 @@
+/*!
+ *  Kwicks: Sexy Sliding Panels for jQuery - v2.0.0
+ *  http://devsmash.com/projects/kwicks
+ *
+ *  Copyright 2012 Jeremy Martin (jmar777)
+ *  Released under the MIT license
+ *  http://www.opensource.org/licenses/mit-license.php
+ */.kwicks{display:block;list-style-type:none;list-style:none;position:relative;margin:0;padding:0}.kwicks>*{display:block;overflow:hidden;padding:0;margin:0}.kwicks.kwicks-processed>*{margin:0;position:absolute}.kwicks-horizontal>*{float:left}.kwicks-horizontal>:first-child{margin-left:0}.kwicks-vertical>:first-child{margin-top:0}
