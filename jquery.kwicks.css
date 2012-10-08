@@ -1,8 +1,15 @@
+/*!
+ *  Kwicks: Sexy Sliding Panels for jQuery - v2.0.0
+ *  http://devsmash.com/projects/kwicks
+ *
+ *  Copyright 2012 Jeremy Martin (jmar777)
+ *  Released under the MIT license
+ *  http://www.opensource.org/licenses/mit-license.php
+ */
 /*
  *  This file contains styles that are common to all kwicks instances.  Note that each kwicks instance requires
  *  additional styling - please see the examples for more info.
  */
-
 .kwicks {
 	display: block;
 	list-style-type: none;
