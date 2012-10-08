@@ -1,14 +1,16 @@
 # Kwicks
 
-Sexy sliding panels for jQuery.
+Sexy sliding panels for jQuery -- [kwicks homepage](http://devsmash.com/projects/kwicks)
 
 ## About Kwicks
 
-Kwicks for jQuery is a plugin providing sexy sliding panels with an emphasis on navigational interaction. Kwicks was originally a port of a MooTools effect (of the same name), but has since evolved into a highly configurable and versatile UI component.
+Kwicks for jQuery is a plugin providing sexy sliding panels with an emphasis on navigational interaction. Kwicks was
+originally a port of a MooTools effect (of the same name), but has since evolved into a highly configurable and versatile
+UI component.
 
-## Docs, Examples, Etc.
-
-Kwicks is a fundamentally visual and interactive UI component, so the easiest way to understand what it is and how it works is to see it in action.  Please check out the [kwicks homepage](http://devsmash.com/projects/kwicks) to get started!
+Kwicks is a fundamentally visual and interactive UI component, so the easiest way to understand what it is and how it 
+works is to see it in action.  **Please check out the [kwicks homepage](http://devsmash.com/projects/kwicks) for the
+documentation, examples, and help on getting started!**
 
 ## License 
 
