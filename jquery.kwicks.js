@@ -29,7 +29,8 @@
 				throw new Error('Kwicks option "maxSize" may not be less than "size"');
 			if (o.behavior && o.behavior !== 'menu')
 				throw new Error('Unrecognized Kwicks behavior specified: ' + o.behavior);
-			
+			if (o.units && o.units !== 'px' && o.units !== '%')
+				throw new Error('Unrecognized units specified (not px or % ): ' + o.units);
 			return this.each(function() {
 				$(this).data('kwicks', new Kwick(this, o));
 			});
@@ -157,6 +158,8 @@
 
 		// calculate minSize from maxSize or vice versa
 		var numPanels = this.$panels.length;
+		if (typeof opts.units === 'undefined') {
+			opts.units = 'px';
 		if (typeof opts.minSize === 'undefined') {
 			opts.minSize = ((opts.size * numPanels) - opts.maxSize) / (numPanels - 1);
 		} else {
@@ -244,11 +247,12 @@
 			pAlign = this.primaryAlignment,
 			sAlign = this.secondaryAlignment,
 			spacing = this.opts.spacing;
-
+			units = this.opts.units;
+			
 		// grab and cache the the size or our container's primary dimension
 		var containerSize = this._containerSize;
 		if (!containerSize) {
-			containerSize = this._containerSize = this.$container.css(pDim).replace('px', '');
+			containerSize = this._containerSize = this.$container.css(pDim).replace(units, '');
 		}
 
 		// the kwicks-processed class ensures that panels are absolutely positioned, but on our
@@ -265,10 +269,10 @@
 			offset = Math.round(offsets[i]);
 			if (i === $panels.length - 1) {
 				size = containerSize - offset;
-				style = sAlign + ':0;' + pDim + ':' + size + 'px;';
+				style = sAlign + ':0;' + pDim + ':' + size + units + ";";
 			} else {
 				size = prevOffset - offset - spacing;
-				style = pAlign + ':' + offset + 'px;' + pDim + ':' + size + 'px;';
+				style = pAlign + ':' + offset + units + ';' + pDim + ':' + size + units + ';';
 			}
 			this.setStyle($panels[i], stylePrefix + style);
 		}
