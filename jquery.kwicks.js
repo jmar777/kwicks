@@ -160,6 +160,7 @@
 		var numPanels = this.$panels.length;
 		if (typeof opts.units === 'undefined') {
 			opts.units = 'px';
+		}
 		if (typeof opts.minSize === 'undefined') {
 			opts.minSize = ((opts.size * numPanels) - opts.maxSize) / (numPanels - 1);
 		} else {
