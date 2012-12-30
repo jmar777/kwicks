@@ -2,7 +2,8 @@
  *  Kwicks: Sexy Sliding Panels for jQuery - v2.0.0
  *  http://devsmash.com/projects/kwicks
  *
- *  Copyright 2012 Jeremy Martin (jmar777)
+ *  Copyright 2012 Jeremy Martin (jmar777) 
+ *  made responsive by Duke Speer (Duke3D)
  *  Released under the MIT license
  *  http://www.opensource.org/licenses/mit-license.php
  */
@@ -23,10 +24,17 @@
 				throw new Error('One of Kwicks options "minSize" or "maxSize" is required');
 			if (typeof o.minSize !== 'undefined' && typeof o.maxSize !== 'undefined')
 				throw new Error('Kwicks options "minSize" and "maxSize" may not both be set');
-			if (o.minSize > o.size)
-				throw new Error('Kwicks option "minSize" may not be greater than "size"');
-			if (o.maxSize < o.size)
-				throw new Error('Kwicks option "maxSize" may not be less than "size"');
+			if (o.units && o.units === '%') {
+				if (o.minSize)
+					throw new Error('Kwicks option "minSize" cannot be set when units are % - set maxSize to match max-width of image in pixels');
+				if (o.maxSize > o.size)
+					throw new Error('Kwicks option "maxSize" of expanded image in pixels must be less than max-width "size" of container in pixels');
+			} else {	
+				if (o.minSize > o.size)
+					throw new Error('Kwicks option "minSize" may not be greater than "size"');
+				if (o.maxSize < o.size)
+					throw new Error('Kwicks option "maxSize" may not be less than "size"');
+			}
 			if (o.behavior && o.behavior !== 'menu')
 				throw new Error('Unrecognized Kwicks behavior specified: ' + o.behavior);
 			if (o.units && o.units !== 'px' && o.units !== '%')
@@ -161,12 +169,22 @@
 		if (typeof opts.units === 'undefined') {
 			opts.units = 'px';
 		}
-		if (typeof opts.minSize === 'undefined') {
-			opts.minSize = ((opts.size * numPanels) - opts.maxSize) / (numPanels - 1);
+		if (opts.units === 'px') {
+			if (typeof opts.minSize === 'undefined') {
+				opts.minSize = ((opts.size * numPanels) - opts.maxSize) / (numPanels - 1);
+			} else {
+				opts.maxSize = (opts.size * numPanels) - (opts.minSize * (numPanels - 1));
+			}
 		} else {
-			opts.maxSize = (opts.size * numPanels) - (opts.minSize * (numPanels - 1));
+			// units = pct, size set as container in px, maxSize set at image width in px
+			if (typeof opts.minSize === 'undefined') {
+				opts.maxSize = Math.round( 1000 * opts.maxSize / opts.size ) / 10
+				opts.minSize = Math.round( ((100 - opts.maxSize - numPanels * opts.spacing) / (numPanels - 1)) * 10 ) / 10;
+				opts.size = Math.round( 1000 / numPanels -1 ) / 10;
+			} else {
+				throw new Error('Unable to set a minSize when units is % - must provide maxSize of image in px');
+			}
 		}
-
 		// zero-based, -1 for "none"
 		this.selectedIndex = this.$panels.filter('.kwicks-selected').index();
 		this.expandedIndex = this.selectedIndex;
@@ -248,12 +266,12 @@
 			pAlign = this.primaryAlignment,
 			sAlign = this.secondaryAlignment,
 			spacing = this.opts.spacing;
-			units = this.opts.units;
+			$units = this.opts.units;
 			
 		// grab and cache the the size or our container's primary dimension
 		var containerSize = this._containerSize;
 		if (!containerSize) {
-			containerSize = this._containerSize = this.$container.css(pDim).replace(units, '');
+			containerSize = this._containerSize = this.$container.css(pDim).replace('$units', '');
 		}
 
 		// the kwicks-processed class ensures that panels are absolutely positioned, but on our
@@ -267,14 +285,22 @@
 			prevOffset = offset;
 			// todo: maybe we do one last pass at the end and round offsets, rather than on every
 			// update
-			offset = Math.round(offsets[i]);
+			if ($units === '%') {
+				offset = Math.round(offsets[i]*100)/100;
+			} else {
+				offset = Math.round(offsets[i]);
+			}
 			if (i === $panels.length - 1) {
-				size = containerSize - offset;
-				style = sAlign + ':0;' + pDim + ':' + size + units + ";";
+				if ($units === '%') {
+					size = 100 - offset - spacing;
+				} else {
+					size = containerSize - offset;
+				}
+				// style = sAlign + ':0;' + pDim + ':' + size + units + ";";
 			} else {
 				size = prevOffset - offset - spacing;
-				style = pAlign + ':' + offset + units + ';' + pDim + ':' + size + units + ';';
 			}
+			style = pAlign + ':' + offset + $units + ';' + pDim + ':' + size + $units + ';';
 			this.setStyle($panels[i], stylePrefix + style);
 		}
 
