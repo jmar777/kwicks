@@ -22,11 +22,13 @@
 				throw new Error('Kwicks option "size" is required');
 			if (typeof o.minSize === 'undefined' && typeof o.maxSize === 'undefined')
 				throw new Error('One of Kwicks options "minSize" or "maxSize" is required');
-			if (typeof o.minSize !== 'undefined' && typeof o.maxSize !== 'undefined')
-				throw new Error('Kwicks options "minSize" and "maxSize" may not both be set');
+			if (typeof o.minSize !== 'undefined' && typeof o.maxSize !== 'undefined' && o.units !== '%') 
+				throw new Error('Kwicks options "minSize" and "maxSize" may not both be set'); // Both settings allowed for percentage-based
+			if (o.units && o.units !== 'px' && o.units !== '%')
+				throw new Error('Unrecognized units specified (not px or % ): ' + o.units);
 			if (o.units && o.units === '%') {
-				if (o.minSize)
-					throw new Error('Kwicks option "minSize" cannot be set when units are % - set maxSize to match max-width of image in pixels');
+				if (o.minSize > o.maxSize)
+					throw new Error('Kwicks option "minSize" cannot be set greater than maxSize - image size at actual pixels');
 				if (o.maxSize > o.size)
 					throw new Error('Kwicks option "maxSize" of expanded image in pixels must be less than max-width "size" of container in pixels');
 			} else {	
@@ -37,8 +39,6 @@
 			}
 			if (o.behavior && o.behavior !== 'menu')
 				throw new Error('Unrecognized Kwicks behavior specified: ' + o.behavior);
-			if (o.units && o.units !== 'px' && o.units !== '%')
-				throw new Error('Unrecognized units specified (not px or % ): ' + o.units);
 			return this.each(function() {
 				$(this).data('kwicks', new Kwick(this, o));
 			});
@@ -176,15 +176,19 @@
 				opts.maxSize = (opts.size * numPanels) - (opts.minSize * (numPanels - 1));
 			}
 		} else {
-			// units = pct, size set as container in px, maxSize set at image width in px
+			// units = pct, options are set for size as fully expanded container size (at max-width of layout) in pixels, and maxSize as image width in actual pixels
 			if (typeof opts.minSize === 'undefined') {
-				opts.maxSize = Math.round( 1000 * opts.maxSize / opts.size ) / 10
-				opts.minSize = Math.round( ((100 - opts.maxSize - numPanels * opts.spacing) / (numPanels - 1)) * 10 ) / 10;
-				opts.size = Math.round( 1000 / numPanels -1 ) / 10;
+				opts.maxSize = Math.round( 1000 * opts.maxSize / opts.size ) / 10; // expanded image size relative to 100% container
+				opts.minSize = Math.round( ((100 - opts.maxSize - (numPanels - 1) * opts.spacing) / (numPanels - 1)) * 10 ) / 10; // contracted image size
+				opts.size = Math.round( 1000 / numPanels - 1 ) / 10;
 			} else {
-				throw new Error('Unable to set a minSize when units is % - must provide maxSize of image in px');
+				opts.minSize = Math.round( 10 * opts.minSize / opts.size ) / 10;  // options-specified minimum contracted image size relative to 100% container
+				opts.maxSize = Math.round( 10 * (100 - (numPanels - 1) * (opts.minSize + opts.spacing))) / 10; // expanded image size relative to 100% container
 			}
+			opts.size = Math.round( 100 * ((100 - ((numPanels - 1) * opts.spacing)) / numPanels )) / 100; // default image size as percent of container
 		}
+		//console.log('Kwicks results - default size='+opts.size+' num panels='+numPanels+' spacing='+opts.spacing+' expanded='+opts.maxSize+' compressed='+opts.minSize);
+
 		// zero-based, -1 for "none"
 		this.selectedIndex = this.$panels.filter('.kwicks-selected').index();
 		this.expandedIndex = this.selectedIndex;
@@ -268,10 +272,10 @@
 			spacing = this.opts.spacing;
 			$units = this.opts.units;
 			
-		// grab and cache the the size or our container's primary dimension
+		// grab and cache the size of our container's primary dimension
 		var containerSize = this._containerSize;
 		if (!containerSize) {
-			containerSize = this._containerSize = this.$container.css(pDim).replace('$units', '');
+			containerSize = this._containerSize = this.$container.css(pDim).replace('px', '').replace('%', '');
 		}
 
 		// the kwicks-processed class ensures that panels are absolutely positioned, but on our
@@ -280,27 +284,30 @@
 		var stylePrefix = !!this._stylesInited ? '' : 'position:absolute;',
 			offset, size, prevOffset, style;
 
-		// loop through remaining panels
+		// loop through panels
 		for (var i = $panels.length; i--;) {
 			prevOffset = offset;
 			// todo: maybe we do one last pass at the end and round offsets, rather than on every
 			// update
 			if ($units === '%') {
-				offset = Math.round(offsets[i]*100)/100;
+				offset = Math.round(offsets[i]*1000)/1000;
+				if (i === $panels.length - 1) {
+					size = 100 - offset;
+					style = sAlign + ':0;' + pDim + ':' + size + units + ";";
+				} else {
+					size = Math.round((prevOffset - offset - spacing)*1000)/1000;
+					style = pAlign + ':' + offset + $units + ';' + pDim + ':' + size + $units + ';';
+				}
 			} else {
 				offset = Math.round(offsets[i]);
-			}
-			if (i === $panels.length - 1) {
-				if ($units === '%') {
-					size = 100 - offset - spacing;
-				} else {
+				if (i === $panels.length - 1) {
 					size = containerSize - offset;
+					style = sAlign + ':0;' + pDim + ':' + size + units + ";";
+				} else {
+					size = Math.round(prevOffset - offset - spacing);
+					style = pAlign + ':' + offset + $units + ';' + pDim + ':' + size + $units + ';';
 				}
-				// style = sAlign + ':0;' + pDim + ':' + size + units + ";";
-			} else {
-				size = prevOffset - offset - spacing;
 			}
-			style = pAlign + ':' + offset + $units + ';' + pDim + ':' + size + $units + ';';
 			this.setStyle($panels[i], stylePrefix + style);
 		}
 
