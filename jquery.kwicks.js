@@ -180,7 +180,6 @@
 			if (typeof opts.minSize === 'undefined') {
 				opts.maxSize = Math.round( 1000 * opts.maxSize / opts.size ) / 10; // expanded image size relative to 100% container
 				opts.minSize = Math.round( ((100 - opts.maxSize - (numPanels - 1) * opts.spacing) / (numPanels - 1)) * 10 ) / 10; // contracted image size
-				opts.size = Math.round( 1000 / numPanels - 1 ) / 10;
 			} else {
 				opts.minSize = Math.round( 10 * opts.minSize / opts.size ) / 10;  // options-specified minimum contracted image size relative to 100% container
 				opts.maxSize = Math.round( 10 * (100 - (numPanels - 1) * (opts.minSize + opts.spacing))) / 10; // expanded image size relative to 100% container
@@ -293,7 +292,7 @@
 				offset = Math.round(offsets[i]*1000)/1000;
 				if (i === $panels.length - 1) {
 					size = 100 - offset;
-					style = sAlign + ':0;' + pDim + ':' + size + units + ";";
+					style = sAlign + ':0;' + pDim + ':' + size + $units + ";";
 				} else {
 					size = Math.round((prevOffset - offset - spacing)*1000)/1000;
 					style = pAlign + ':' + offset + $units + ';' + pDim + ':' + size + $units + ';';
@@ -302,7 +301,7 @@
 				offset = Math.round(offsets[i]);
 				if (i === $panels.length - 1) {
 					size = containerSize - offset;
-					style = sAlign + ':0;' + pDim + ':' + size + units + ";";
+					style = sAlign + ':0;' + pDim + ':' + size + $units + ";";
 				} else {
 					size = Math.round(prevOffset - offset - spacing);
 					style = pAlign + ':' + offset + $units + ';' + pDim + ':' + size + $units + ';';
