@@ -1,5 +1,5 @@
 {
-	"name": "Kwicks",
+	"name": "kwicks",
 	"title": "Kwicks for jQuery",
 	"description": "Sexy sliding panels with an emphasis on navigational interaction.",
 	"keywords": [
@@ -30,4 +30,4 @@
 	"dependencies": {
 		"jquery": ">=1.7"
 	}
-}
+} 
