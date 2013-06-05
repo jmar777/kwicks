@@ -22,7 +22,7 @@
 				throw new Error('Kwicks options minSize and maxSize may not both be set');
 			if (o.behavior && o.behavior !== 'menu')
 				throw new Error('Unrecognized Kwicks behavior specified: ' + o.behavior);
-			$.each(['size', 'minSize', 'maxSize'], function(i, prop) {
+			$.each(['minSize', 'maxSize'], function(i, prop) {
 				var val = o[prop];
 				switch (typeof val) {
 					case 'number':
@@ -225,13 +225,7 @@
 			sumSpacing = opts.spacing * (numPanels - 1),
 			sumPanelSize = containerSize - sumSpacing;
 
-		if (opts.size === -1) {
-			this.panelSize = sumPanelSize / numPanels;
-		} else if (opts.sizeUnits === '%') {
-			this.panelSize = sumPanelSize * opts.size;
-		} else {
-			this.panelSize = opts.size;
-		}
+		this.panelSize = sumPanelSize / numPanels;
 
 		if (opts.minSize === -1) {
 			if (opts.maxSize === -1) {
