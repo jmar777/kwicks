@@ -1,9 +1,9 @@
 /*!
- *  Kwicks: Sexy Sliding Panels for jQuery - v2.0.0
+ *  Kwicks: Sexy Sliding Panels for jQuery - v2.1.0-pre
  *  http://devsmash.com/projects/kwicks
  *
- *  Copyright 2012 Jeremy Martin (jmar777) 
- *  made responsive by Duke Speer (Duke3D)
+ *  Copyright 2013 Jeremy Martin (jmar777)
+ *  Contributors: Duke Speer (Duke3D)
  *  Released under the MIT license
  *  http://www.opensource.org/licenses/mit-license.php
  */
@@ -17,28 +17,37 @@
 		init: function(opts) {
 			var o = $.extend({ duration: 500, spacing: 5 }, opts);
 
-			// validate options
-			if (typeof o.size === 'undefined')
-				throw new Error('Kwicks option "size" is required');
-			if (typeof o.minSize === 'undefined' && typeof o.maxSize === 'undefined')
-				throw new Error('One of Kwicks options "minSize" or "maxSize" is required');
-			if (typeof o.minSize !== 'undefined' && typeof o.maxSize !== 'undefined' && o.units !== '%') 
-				throw new Error('Kwicks options "minSize" and "maxSize" may not both be set'); // Both settings allowed for percentage-based
-			if (o.units && o.units !== 'px' && o.units !== '%')
-				throw new Error('Unrecognized units specified (not px or % ): ' + o.units);
-			if (o.units && o.units === '%') {
-				if (o.minSize > o.maxSize)
-					throw new Error('Kwicks option "minSize" cannot be set greater than maxSize - image size at actual pixels');
-				if (o.maxSize > o.size)
-					throw new Error('Kwicks option "maxSize" of expanded image in pixels must be less than max-width "size" of container in pixels');
-			} else {	
-				if (o.minSize > o.size)
-					throw new Error('Kwicks option "minSize" may not be greater than "size"');
-				if (o.maxSize < o.size)
-					throw new Error('Kwicks option "maxSize" may not be less than "size"');
-			}
+			// validate and normalize options
+			if (typeof o.minSize !== 'undefined' && typeof o.maxSize !== 'undefined')
+				throw new Error('Kwicks options minSize and maxSize may not both be set');
 			if (o.behavior && o.behavior !== 'menu')
 				throw new Error('Unrecognized Kwicks behavior specified: ' + o.behavior);
+			$.each(['size', 'minSize', 'maxSize'], function(i, prop) {
+				var val = o[prop];
+				switch (typeof val) {
+					case 'number':
+						o[prop + 'Units'] = 'px';
+						break;
+					case 'string':
+						if (val.slice(-1) === '%') {
+							o[prop + 'Units'] = '%';
+							o[prop] = +val.slice(0, -1) / 100;
+						} else if (val.slice(-2) === 'px') {
+							o[prop + 'Units'] = 'px';
+							o[prop] = +val.slice(0, -2);	
+						} else {
+							throw new Error('Invalid value for Kwicks option ' + prop + ': ' + val);
+						}
+						break;
+					case 'undefined':
+						o[prop] = -1;
+						o[prop + 'Units'] = '%';
+						break;
+					default:
+						throw new Error('Invalid value for Kwicks option ' + prop + ': ' + val);
+				}
+			});
+						
 			return this.each(function() {
 				$(this).data('kwicks', new Kwick(this, o));
 			});
@@ -124,7 +133,6 @@
 		}
 	};
 
-	
 	/**
 	 *  Special event for triggering default behavior on 'expand.kwicks' events
 	 */
@@ -164,30 +172,6 @@
 		this.$container = $(container).addClass('kwicks').addClass('kwicks-' + orientation);
 		this.$panels = this.$container.children();
 
-		// calculate minSize from maxSize or vice versa
-		var numPanels = this.$panels.length;
-		if (typeof opts.units === 'undefined') {
-			opts.units = 'px';
-		}
-		if (opts.units === 'px') {
-			if (typeof opts.minSize === 'undefined') {
-				opts.minSize = ((opts.size * numPanels) - opts.maxSize) / (numPanels - 1);
-			} else {
-				opts.maxSize = (opts.size * numPanels) - (opts.minSize * (numPanels - 1));
-			}
-		} else {
-			// units = pct, options are set for size as fully expanded container size (at max-width of layout) in pixels, and maxSize as image width in actual pixels
-			if (typeof opts.minSize === 'undefined') {
-				opts.maxSize = Math.round( 1000 * opts.maxSize / opts.size ) / 10; // expanded image size relative to 100% container
-				opts.minSize = Math.round( ((100 - opts.maxSize - (numPanels - 1) * opts.spacing) / (numPanels - 1)) * 10 ) / 10; // contracted image size
-			} else {
-				opts.minSize = Math.round( 10 * opts.minSize / opts.size ) / 10;  // options-specified minimum contracted image size relative to 100% container
-				opts.maxSize = Math.round( 10 * (100 - (numPanels - 1) * (opts.minSize + opts.spacing))) / 10; // expanded image size relative to 100% container
-			}
-			opts.size = Math.round( 100 * ((100 - ((numPanels - 1) * opts.spacing)) / numPanels )) / 100; // default image size as percent of container
-		}
-		//console.log('Kwicks results - default size='+opts.size+' num panels='+numPanels+' spacing='+opts.spacing+' expanded='+opts.maxSize+' compressed='+opts.minSize);
-
 		// zero-based, -1 for "none"
 		this.selectedIndex = this.$panels.filter('.kwicks-selected').index();
 		this.expandedIndex = this.selectedIndex;
@@ -196,9 +180,12 @@
 		this.primaryDimension = opts.isVertical ? 'height' : 'width';
 		this.secondaryDimension = opts.isVertical ? 'width' : 'height';
 
+		// initialize panel sizes
+		this.calculatePanelSizes();
+
 		// likewise, we have primary and secondary alignments (all panels but the last use primary,
 		// which uses the secondary alignment). this is to allow the first and last panels to have
-		// fixed (0) offsets. this reduces jittering, which is much more noticeable on the ends.
+		// fixed offsets. this reduces jittering, which is much more noticeable on the last item.
 		this.primaryAlignment = opts.isVertical ? 'top' : 'left';
 		this.secondaryAlignment = opts.isVertical ? 'bottom' : 'right';
 
@@ -210,6 +197,57 @@
 
 		this.initStyles();
 		this.initBehavior();
+		this.initWindowResizeHandler();
+	};
+
+	/**
+	 * Calculates size, minSize, and maxSize based on the current size of the container and the
+	 * user-provided options.  The results will be stored on this.panelSize, this.panelMinSize, and
+	 * this.panelMaxSize.  This should be run on initialization and whenever the container's
+	 * primary dimension may have changed in size.
+	 */
+	Kwick.prototype.calculatePanelSizes = function() {
+		var opts = this.opts,
+			numPanels = this.$panels.length,
+			containerSize = this.getContainerSize(true),
+			sumSpacing = opts.spacing * (numPanels - 1),
+			sumPanelSize = containerSize - sumSpacing;
+
+		if (opts.size === -1) {
+			this.panelSize = sumPanelSize / numPanels;
+		} else if (opts.sizeUnits === '%') {
+			this.panelSize = sumPanelSize * opts.size;
+		} else {
+			this.panelSize = opts.size;
+		}
+
+		if (opts.minSize === -1) {
+			if (opts.maxSize === -1) {
+				// if neither minSize or maxSize or set, then we try to pick a sensible default
+				if (numPanels < 5) {
+					this.panelMaxSize = containerSize / 3 * 2;
+				} else {
+					this.panelMaxSize = containerSize / 3;
+				}
+			} else if (opts.maxSizeUnits === '%') {
+				this.panelMaxSize = sumPanelSize * opts.maxSize;
+			} else {
+				this.panelMaxSize = opts.maxSize;
+			}
+
+			// at this point we know that this.panelMaxSize is set
+			this.panelMinSize = (sumPanelSize - this.panelMaxSize) / (numPanels - 1);
+		} else if (opts.maxSize === -1) {
+			// at this point we know that opts.minSize is set
+			if (opts.minSizeUnits === '%') {
+				this.panelMinSize = sumPanelSize * opts.minSize;
+			} else {
+				this.panelMinSize = opts.minSize;
+			}
+
+			// at this point we know that this.panelMinSize is set
+			this.panelMaxSize = sumPanelSize - (this.panelMinSize * (numPanels - 1));
+		}
 	};
 
 	/**
@@ -220,9 +258,9 @@
 		var expandedIndex = this.expandedIndex,
 			numPanels = this.$panels.length,
 			spacing = this.opts.spacing,
-			size = this.opts.size,
-			minSize = this.opts.minSize,
-			maxSize = this.opts.maxSize;
+			size = this.panelSize,
+			minSize = this.panelMinSize,
+			maxSize = this.panelMaxSize;
 
 		//first panel is always offset by 0
 		var offsets = [0];
@@ -268,44 +306,27 @@
 			pDim = this.primaryDimension,
 			pAlign = this.primaryAlignment,
 			sAlign = this.secondaryAlignment,
-			spacing = this.opts.spacing;
-			$units = this.opts.units;
-			
-		// grab and cache the size of our container's primary dimension
-		var containerSize = this._containerSize;
-		if (!containerSize) {
-			containerSize = this._containerSize = this.$container.css(pDim).replace('px', '').replace('%', '');
-		}
+			spacing = this.opts.spacing,
+			containerSize = this.getContainerSize();
 
 		// the kwicks-processed class ensures that panels are absolutely positioned, but on our
-		// first pass we need to set offsets, width, and positioning atomically to prevent
+		// first pass we need to set offsets, width|length, and positioning atomically to prevent
 		// mid-update repaints
 		var stylePrefix = !!this._stylesInited ? '' : 'position:absolute;',
 			offset, size, prevOffset, style;
 
-		// loop through panels
+		// loop through remaining panels
 		for (var i = $panels.length; i--;) {
 			prevOffset = offset;
 			// todo: maybe we do one last pass at the end and round offsets, rather than on every
 			// update
-			if ($units === '%') {
-				offset = Math.round(offsets[i]*1000)/1000;
-				if (i === $panels.length - 1) {
-					size = 100 - offset;
-					style = sAlign + ':0;' + pDim + ':' + size + $units + ";";
-				} else {
-					size = Math.round((prevOffset - offset - spacing)*1000)/1000;
-					style = pAlign + ':' + offset + $units + ';' + pDim + ':' + size + $units + ';';
-				}
+			offset = Math.round(offsets[i]);
+			if (i === $panels.length - 1) {
+				size = containerSize - offset;
+				style = sAlign + ':0;' + pDim + ':' + size + 'px;';
 			} else {
-				offset = Math.round(offsets[i]);
-				if (i === $panels.length - 1) {
-					size = containerSize - offset;
-					style = sAlign + ':0;' + pDim + ':' + size + $units + ";";
-				} else {
-					size = Math.round(prevOffset - offset - spacing);
-					style = pAlign + ':' + offset + $units + ';' + pDim + ':' + size + $units + ';';
-				}
+				size = prevOffset - offset - spacing;
+				style = pAlign + ':' + offset + 'px;' + pDim + ':' + size + 'px;';
 			}
 			this.setStyle($panels[i], stylePrefix + style);
 		}
@@ -328,9 +349,9 @@
 			sDim = this.secondaryDimension;
 
 		// the primary side is the sum of all panels and their spacing
-		$container.css(pDim, (opts.size * numPanels) + (opts.spacing * (numPanels - 1)));
+		// $container.css(pDim, (opts.size * numPanels) + (opts.spacing * (numPanels - 1)));
 		// the secondary side is the same as the child panel elements (assume they're all equal)
-		$container.css(sDim, $panels.eq(0).css(sDim));	
+		// $container.css(sDim, $panels.eq(0).css(sDim));	
 
 		this.updatePanelStyles();
 	};
@@ -356,6 +377,65 @@
 			default:
 				throw new Error('Unrecognized behavior option: ' + this.opts.behavior);
 		}
+	};
+
+	/**
+	 * Sets up a throttled window resize handler that triggers resize logic for the panels
+	 * todo: hideous code, needs refactor for the eye bleeds
+	 */
+	Kwick.prototype.initWindowResizeHandler = function() {
+		var self = this,
+			prevContainerSize = self.getContainerSize(),
+			prevTime = 0,
+			execScheduled = false;
+
+		var onResize = function(e) {
+			// we can tell if this is from a window event or our setTimeout based on whether or not
+			// the event is passed
+			if (!e) {
+				execScheduled = false;
+			}
+
+			var now = +new Date();
+			if (now - prevTime < 20) {
+				// if we already scheduled a run, don't do it again
+				if (execScheduled) return;
+				setTimeout(onResize, 20 - (now - prevTime));
+				execScheduled = true;
+				return;
+			}
+
+			prevTime = now;
+
+			// bail out if container size hasn't changed
+			var newContainerSize = self.getContainerSize(true);
+			if (prevContainerSize === newContainerSize) return;
+
+			prevContainerSize = newContainerSize;
+			self.calculatePanelSizes();
+			self.offsets = self.getOffsetsForExpanded();
+
+			if (self.isAnimated) {
+				self._dirtyOffsets = true;
+			} else {
+				self.updatePanelStyles();
+			}
+		}
+
+		$(window).on('resize', onResize);
+	};
+
+	/**
+	 * Returns the size in pixels of the container's primary dimension. This value is cached as it
+	 * is used repeatedly during animation loops, but the cache can be cleared by passing `true`.
+	 * todo: benchmark to see if this caching business is even at all necessary.
+	 */
+	Kwick.prototype.getContainerSize = function(clearCache) {
+		var containerSize = this._containerSize;
+		if (clearCache || !containerSize) {
+			containerSize = this._containerSize = this.$container[this.primaryDimension]();
+		}
+		return containerSize;
 	};
 
 	/**
@@ -414,10 +494,16 @@
 			targetOffsets = this.getOffsetsForExpanded();
 
 		$timer.stop()[0].progress = 0;
+		this.isAnimated = true;
 		$timer.animate({ progress: 1 }, {
 			duration: this.opts.duration,
 			easing: this.opts.easing,
 			step: function(progress) {
+				if (self._dirtyOffsets) {
+					offsets = self.offsets;
+					targetOffsets = self.getOffsetsForExpanded();
+					self._dirtyOffsets = false;
+				}
 				offsets.length = 0;
 				for (var i = 0; i < numPanels; i++) {
 					var targetOffset = targetOffsets[i],
@@ -425,6 +511,9 @@
 					offsets[i] = newOffset;
 				}
 				self.updatePanelStyles();
+			},
+			complete:  function() {
+				self.isAnimated = false;
 			}
 		});
 	};
