@@ -348,11 +348,6 @@
 			pDim = this.primaryDimension,
 			sDim = this.secondaryDimension;
 
-		// the primary side is the sum of all panels and their spacing
-		// $container.css(pDim, (opts.size * numPanels) + (opts.spacing * (numPanels - 1)));
-		// the secondary side is the same as the child panel elements (assume they're all equal)
-		// $container.css(sDim, $panels.eq(0).css(sDim));	
-
 		this.updatePanelStyles();
 	};
 
@@ -385,17 +380,14 @@
 	 */
 	Kwick.prototype.initWindowResizeHandler = function() {
 		var self = this,
-			prevContainerSize = self.getContainerSize(),
 			prevTime = 0,
 			execScheduled = false;
 
 		var onResize = function(e) {
-			// we can tell if this is from a window event or our setTimeout based on whether or not
-			// the event is passed
-			if (!e) {
-				execScheduled = false;
-			}
+			// if there's no event, then this is a scheduled from our setTimeout
+			if (!e) { execScheduled = false; }
 
+			// if we've already run in the last 20ms, then delay execution
 			var now = +new Date();
 			if (now - prevTime < 20) {
 				// if we already scheduled a run, don't do it again
@@ -405,23 +397,10 @@
 				return;
 			}
 
+			// throttle rate is satisfied, go ahead and run
 			prevTime = now;
-
-			// bail out if container size hasn't changed
-			var newContainerSize = self.getContainerSize(true);
-			if (prevContainerSize === newContainerSize) return;
-
-			prevContainerSize = newContainerSize;
-			self.calculatePanelSizes();
-			self.offsets = self.getOffsetsForExpanded();
-
-			if (self.isAnimated) {
-				self._dirtyOffsets = true;
-			} else {
-				self.updatePanelStyles();
-			}
+			self.resize();			
 		}
-
 		$(window).on('resize', onResize);
 	};
 
@@ -450,6 +429,26 @@
 	 */
 	Kwick.prototype.getSelectedPanel = function() {
 		return this.selectedIndex === -1 ? $([]) : this.$panels.eq(this.selectedIndex);
+	};
+
+	/**
+	 *  Forces the panels to be updated in response to the container being resized.
+	 */
+	Kwick.prototype.resize = function(index) {
+		// bail out if container size hasn't changed
+		if (this.getContainerSize() === this.getContainerSize(true)) return;
+
+		this.calculatePanelSizes();
+		this.offsets = this.getOffsetsForExpanded();
+
+		// if the panels are currently being animated, we'll just set a flag that can be detected
+		// during the next animation step
+		if (this.isAnimated) {
+			this._dirtyOffsets = true;
+		} else {
+			// otherwise update the styles immediately
+			this.updatePanelStyles();
+		}
 	};
 
 	/**
