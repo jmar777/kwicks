@@ -15,7 +15,7 @@
 	 */
 	var methods = {
 		init: function(opts) {
-			var o = $.extend({ duration: 500, spacing: 5 }, opts);
+			var o = $.extend({ duration: 500, spacing: 5, autoResize: true }, opts);
 
 			// validate and normalize options
 			if (typeof o.minSize !== 'undefined' && typeof o.maxSize !== 'undefined')
@@ -379,6 +379,8 @@
 	 * todo: hideous code, needs refactor for the eye bleeds
 	 */
 	Kwick.prototype.initWindowResizeHandler = function() {
+		if (!this.opts.autoResize) return;
+
 		var self = this,
 			prevTime = 0,
 			execScheduled = false;
