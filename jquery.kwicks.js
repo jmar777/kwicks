@@ -117,6 +117,18 @@
 			var kwick = this.first().data('kwicks');
 			if (!kwick) throw new Error('Cannot called "selected" method on a non-Kwicks element');
 			return kwick.selectedIndex;
+		},
+		resize: function(index) {
+			return this.each(function() {
+				var $this = $(this),
+					kwick = $this.data('kwicks');
+
+				if (!kwick) {
+					throw new Error('Cannot called "resize" method on a non-Kwicks element');
+				}
+
+				kwick.resize();			
+			});
 		}
 	};
 
