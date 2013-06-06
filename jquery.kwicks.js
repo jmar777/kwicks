@@ -15,10 +15,20 @@
 	 */
 	var methods = {
 		init: function(opts) {
-			var o = $.extend({ duration: 500, spacing: 5, autoResize: true }, opts);
+			var defaults = {
+				maxSize: -1,
+				minSize: -1,
+				spacing: 5,
+				duration: 500,
+				isVertical: false,
+				easing: undefined,
+				behavior: null,
+				autoResize: true
+			};
+			var o = $.extend(defaults, opts);
 
 			// validate and normalize options
-			if (typeof o.minSize !== 'undefined' && typeof o.maxSize !== 'undefined')
+			if (o.minSize !== -1 && o.maxSize !== -1)
 				throw new Error('Kwicks options minSize and maxSize may not both be set');
 			if (o.behavior && o.behavior !== 'menu')
 				throw new Error('Unrecognized Kwicks behavior specified: ' + o.behavior);
@@ -38,10 +48,6 @@
 						} else {
 							throw new Error('Invalid value for Kwicks option ' + prop + ': ' + val);
 						}
-						break;
-					case 'undefined':
-						o[prop] = -1;
-						o[prop + 'Units'] = '%';
 						break;
 					default:
 						throw new Error('Invalid value for Kwicks option ' + prop + ': ' + val);
