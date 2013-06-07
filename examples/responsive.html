@@ -27,12 +27,15 @@
 			<li id='panel-4'></li>
 		</ul>
 
+		<p>Watch Kwicks react as you resize the window!</p>
+
 		<script src='js/jquery-1.8.1.min.js' type='text/javascript'></script>
 		<script src='../jquery.kwicks.js' type='text/javascript'></script>
 		
 		<script type='text/javascript'>
 			$(function() {
 				$('.kwicks').kwicks({
+					maxSize: '75%',
 					behavior: 'menu'
 				});
 			});
