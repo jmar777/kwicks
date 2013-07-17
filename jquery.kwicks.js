@@ -439,6 +439,13 @@
 	};
 
 	/**
+	 *  Gets a reference to the currently collapsed panels (if there is any)
+	 */
+	Kwick.prototype.getCollapsedPanels = function() {
+		return this.expandedIndex === -1 ? $([]) : this.$panels.not(this.getExpandedPanel());
+	};
+
+	/**
 	 *  Gets a reference to the currently selected panel (if there is one)
 	 */
 	Kwick.prototype.getSelectedPanel = function() {
@@ -496,8 +503,10 @@
 		if (index === this.expandedIndex) return;
 
 		this.getExpandedPanel().removeClass('kwicks-expanded');
+		this.getCollapsedPanels().removeClass('kwicks-collapsed');
 		this.expandedIndex = index;
 		this.getExpandedPanel().addClass('kwicks-expanded');
+		this.getCollapsedPanels().addClass('kwicks-collapsed');
 
 		// handle panel animation
 		var $timer = this.$timer,
