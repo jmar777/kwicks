@@ -32,18 +32,12 @@
 		
 		<script type='text/javascript'>
 			$(function() {
-				var $slideshow = $('.kwicks').kwicks({
+				$('.kwicks').kwicks({
 					minSize : 20,
-					spacing : 5
+					spacing : 5,
+					behavior: "slideshow",
+					showSpeed: 2.5
 				});
-
-				var numSlides = $slideshow.children().length,
-					speed = 2000,
-					curSlide = 0;
-
-				setInterval(function() {
-					$slideshow.kwicks('expand', ++curSlide % numSlides);
-				}, speed);
 			});
 		</script>
 	</body>
