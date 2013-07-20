@@ -23,14 +23,15 @@
 				isVertical: false,
 				easing: undefined,
 				behavior: null,
-				autoResize: true
+				autoResize: true,
+				showSpeed: undefined
 			};
 			var o = $.extend(defaults, opts);
 
 			// validate and normalize options
 			if (o.minSize !== -1 && o.maxSize !== -1)
 				throw new Error('Kwicks options minSize and maxSize may not both be set');
-			if (o.behavior && o.behavior !== 'menu')
+			if (o.behavior && o.behavior !== 'menu' && o.behavior !== 'slideshow')
 				throw new Error('Unrecognized Kwicks behavior specified: ' + o.behavior);
 			$.each(['minSize', 'maxSize'], function(i, prop) {
 				var val = o[prop];
@@ -216,6 +217,7 @@
 		this.initStyles();
 		this.initBehavior();
 		this.initWindowResizeHandler();
+		this.initSlideShow();
 	};
 
 	/**
@@ -381,6 +383,11 @@
 					$(this).kwicks('select');
 				});
 				break;
+			case 'slideshow':
+				this.$panels.click(function(){
+					$(this).kwicks('select');
+				});
+				break;
 			default:
 				throw new Error('Unrecognized behavior option: ' + this.opts.behavior);
 		}
@@ -416,6 +423,26 @@
 			self.resize();			
 		}
 		$(window).on('resize', onResize);
+	};
+
+	/**
+	 * Initialize Slide Show behavior
+	 */
+	Kwick.prototype.initSlideShow = function() {
+		if (!this.opts.showSpeed || this.opts.behavior !== "slideshow") return;
+		if (isNaN(this.opts.showSpeed)) {
+			throw new Error('Invalid slideShow option (not a number): ' + this.opts.slideShow);
+		}
+
+		var self = this,
+			speed = parseInt(this.opts.showSpeed)*1000,
+			numSlides = this.$panels.length,
+			curSlide = 0;
+
+		clearInterval(this.slideShowInterval);
+		this.slideShowInterval = setInterval(function(){
+			self.expand(curSlide++ % numSlides);
+		},speed);
 	};
 
 	/**
