@@ -19,6 +19,7 @@
 				maxSize: -1,
 				minSize: -1,
 				spacing: 5,
+				spacingPct: 1,  // New var to keep track of requested spacing when entered as a percent of the container instead of pixels
 				duration: 500,
 				isVertical: false,
 				easing: undefined,
@@ -33,7 +34,7 @@
 				throw new Error('Kwicks options minSize and maxSize may not both be set');
 			if (o.behavior && o.behavior !== 'menu' && o.behavior !== 'slideshow')
 				throw new Error('Unrecognized Kwicks behavior specified: ' + o.behavior);
-			$.each(['minSize', 'maxSize'], function(i, prop) {
+			$.each(['minSize', 'maxSize', 'spacing'], function(i, prop) { // Added spacing as an option that can have units
 				var val = o[prop];
 				switch (typeof val) {
 					case 'number':
@@ -54,6 +55,7 @@
 						throw new Error('Invalid value for Kwicks option ' + prop + ': ' + val);
 				}
 			});
+			if (o.spacingUnits === '%') o.spacingPct = o.spacing; // Retain the value entered for spacing if entered as a percent
 						
 			return this.each(function() {
 				$(this).data('kwicks', new Kwick(this, o));
@@ -225,14 +227,22 @@
 	 * user-provided options.  The results will be stored on this.panelSize, this.panelMinSize, and
 	 * this.panelMaxSize.  This should be run on initialization and whenever the container's
 	 * primary dimension may have changed in size.
+	 * this.panelSpacing added to keep track of spacing calculated as a percentage of the container.
 	 */
 	Kwick.prototype.calculatePanelSizes = function() {
 		var opts = this.opts,
 			numPanels = this.$panels.length,
 			containerSize = this.getContainerSize(true),
+			spacingCalc = opts.spacing,
 			sumSpacing = opts.spacing * (numPanels - 1),
 			sumPanelSize = containerSize - sumSpacing;
+		if (opts.spacingUnits === '%') {
+			spacingCalc = containerSize * opts.spacingPct;
+			sumSpacing = spacingCalc * (numPanels - 1);
+			sumPanelSize = containerSize - sumSpacing;
+		}
 
+		this.panelSpacing = spacingCalc;
 		this.panelSize = sumPanelSize / numPanels;
 
 		if (opts.minSize === -1) {
@@ -271,7 +281,7 @@
 		// todo: cache the offset values
 		var expandedIndex = this.expandedIndex,
 			numPanels = this.$panels.length,
-			spacing = this.opts.spacing,
+			spacing = this.panelSpacing,  // Use calculated value - pixels or percent recalculated as pixels
 			size = this.panelSize,
 			minSize = this.panelMinSize,
 			maxSize = this.panelMaxSize;
@@ -320,7 +330,7 @@
 			pDim = this.primaryDimension,
 			pAlign = this.primaryAlignment,
 			sAlign = this.secondaryAlignment,
-			spacing = this.opts.spacing,
+			spacing = this.panelSpacing,  // Use calculated spacing
 			containerSize = this.getContainerSize();
 
 		// the kwicks-processed class ensures that panels are absolutely positioned, but on our
