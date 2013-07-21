@@ -3,7 +3,7 @@
  *  http://devsmash.com/projects/kwicks
  *
  *  Copyright 2013 Jeremy Martin (jmar777)
- *  Contributors: Duke Speer (Duke3D)
+ *  Contributors: Duke Speer (Duke3D), Guillermo Guerrero (gguerrero)
  *  Released under the MIT license
  *  http://www.opensource.org/licenses/mit-license.php
  */
