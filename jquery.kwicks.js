@@ -16,15 +16,17 @@
 	var methods = {
 		init: function(opts) {
 			var defaults = {
+				// general options:
 				maxSize: -1,
 				minSize: -1,
 				spacing: 5,
 				duration: 500,
 				isVertical: false,
 				easing: undefined,
-				behavior: null,
 				autoResize: true,
-				showSpeed: undefined
+				behavior: null,
+				//slideshow options:
+				interval: 2500
 			};
 			var o = $.extend(defaults, opts);
 
@@ -217,7 +219,6 @@
 		this.initStyles();
 		this.initBehavior();
 		this.initWindowResizeHandler();
-		this.initSlideShow();
 	};
 
 	/**
@@ -372,25 +373,62 @@
 	Kwick.prototype.initBehavior = function() {
 		if (!this.opts.behavior) return;
 
-		var $container = this.$container;
 		switch (this.opts.behavior) {
 			case 'menu':
-				this.$container.on('mouseleave', function() {
-					$container.kwicks('expand', -1);
-				}).children().on('mouseover', function() {
-					$(this).kwicks('expand');
-				}).click(function() {
-					$(this).kwicks('select');
-				});
+				this.initMenuBehavior();
 				break;
 			case 'slideshow':
-				this.$panels.click(function(){
-					$(this).kwicks('select');
-				});
+				this.initSlideshowBehavior();
 				break;
 			default:
 				throw new Error('Unrecognized behavior option: ' + this.opts.behavior);
 		}
+	};
+
+	/**
+	 * Initializes the menu behavior.
+	 */
+	Kwick.prototype.initMenuBehavior = function() {
+		var self = this;
+		this.$container.on('mouseleave', function() {
+			self.$container.kwicks('expand', -1);
+		}).children().on('mouseover', function() {
+			$(this).kwicks('expand');
+		}).click(function() {
+			$(this).kwicks('select');
+		});
+	};
+
+	/**
+	 * Initializes the slideshow behavior.
+	 */
+	Kwick.prototype.initSlideshowBehavior = function() {
+		var self = this,
+			numSlides = this.$panels.length,
+			curSlide = 0,
+			// flag to handle weird corner cases
+			running = false,
+			intervalId;
+
+		var start = function() {
+			if (running) return;
+			intervalId = setInterval(function() {
+				self.$container.kwicks('expand', ++curSlide % numSlides);
+			}, self.opts.interval);
+			running = true;
+		};
+
+		var pause = function() {
+			clearInterval(intervalId);
+			running = false;
+		};
+
+		this.$container.hover(pause, start)
+			.children().on('mouseover', function() {
+				curSlide = $(this).kwicks('expand').index();
+			});
+
+		start();
 	};
 
 	/**
@@ -423,26 +461,6 @@
 			self.resize();			
 		}
 		$(window).on('resize', onResize);
-	};
-
-	/**
-	 * Initialize Slide Show behavior
-	 */
-	Kwick.prototype.initSlideShow = function() {
-		if (!this.opts.showSpeed || this.opts.behavior !== "slideshow") return;
-		if (isNaN(this.opts.showSpeed)) {
-			throw new Error('Invalid slideShow option (not a number): ' + this.opts.slideShow);
-		}
-
-		var self = this,
-			speed = parseInt(this.opts.showSpeed)*1000,
-			numSlides = this.$panels.length,
-			curSlide = 0;
-
-		clearInterval(this.slideShowInterval);
-		this.slideShowInterval = setInterval(function(){
-			self.expand(curSlide++ % numSlides);
-		},speed);
 	};
 
 	/**
