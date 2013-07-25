@@ -26,7 +26,8 @@
 				autoResize: true,
 				behavior: null,
 				//slideshow options:
-				interval: 2500
+				interval: 2500,
+				interactive: true
 			};
 			var o = $.extend(defaults, opts);
 
@@ -417,6 +418,9 @@
 			}, self.opts.interval);
 			running = true;
 		};
+		start();
+
+		if (!this.opts.interactive) return;
 
 		var pause = function() {
 			clearInterval(intervalId);
@@ -427,8 +431,6 @@
 			.children().on('mouseover', function() {
 				curSlide = $(this).kwicks('expand').index();
 			});
-
-		start();
 	};
 
 	/**
