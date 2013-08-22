@@ -91,7 +91,7 @@
 					oldExpanded: oldExpanded
 				};
 
-				kwick.$container.trigger('expand.kwicks', data);			
+				kwick.$container.trigger('expand.kwicks', data);
 			});
 		},
 		expanded: function() {
@@ -145,7 +145,7 @@
 					throw new Error('Cannot called "resize" method on a non-Kwicks element');
 				}
 
-				kwick.resize();			
+				kwick.resize();
 			});
 		}
 	};
@@ -214,7 +214,7 @@
 		this.secondaryAlignment = opts.isVertical ? 'bottom' : 'right';
 
 		// object for creating a "master" animation loop for all panel animations
-		this.$timer = $({ progress : 0 });
+		this.$timer = $({ progress: 0 });
 
 		// the current offsets for each panel
 		this.offsets = this.getOffsetsForExpanded();
