@@ -65,29 +65,33 @@
 		expand: function(index) {
 			return this.each(function() {
 				var $this = $(this),
-					$panel;
+					kwick = $this.data('kwicks');
 
-				// if this is a container, then we require a panel index
-				if ($this.is('.kwicks-processed')) {
-					if (typeof index !== 'number')
-						throw new Error('Kwicks method "expand" requires an index');
-					// protect against jquery's eq(-index) feature
-					if (index >= 0) $panel = $this.children().eq(index);
+				// assume this is the container
+				if (kwick) {
+					index = typeof index === 'number' && index >= 0 ? index : -1;
 				}
-				// otherwise `this` should be a panel already
-				else if ($this.parent().is('.kwicks-processed')) {
-					// don't need panel in this scenario
-					$panel = $this;
-					index = $panel.index();
-				}
-				// if it's not a container or a panel, then this was an erroneous method call
+				// otherwise, assume we have a panel
 				else {
-					throw new Error('Cannot call "expand" method on a non-Kwicks element');
+					kwick = $this.parent().data('kwicks');
+					index = $this.index();
 				}
 
-				// try to trigger on panel, but default to container if panel doesn't exist
-				var $target = ($panel && $panel.length) ? $panel : $this;
-				$target.trigger('expand.kwicks', { index: index });				
+				var $panels = kwick.$panels,
+					expanded = index >= 0 ? $panels.get(index) : null,
+					collapsed = $panels.not(expanded).get(),
+					oldIndex = kwick.expandedIndex,
+					oldExpanded = oldIndex >= 0 ? $panels.get(oldIndex) : null;
+
+				var data = {
+					index: index,
+					expanded: expanded,
+					collapsed: collapsed,
+					oldIndex: oldIndex,
+					oldExpanded: oldExpanded
+				};
+
+				kwick.$container.trigger('expand.kwicks', data);			
 			});
 		},
 		expanded: function() {
@@ -98,29 +102,33 @@
 		select: function(index) {
 			return this.each(function() {
 				var $this = $(this),
-					$panel;
-
-				// if this is a container, then we require a panel index
-				if ($this.is('.kwicks-processed')) {
-					if (typeof index !== 'number')
-						throw new Error('Kwicks method "select" requires an index');
-					// protect against jquery's eq(-index) feature
-					if (index >= 0) $panel = $this.children().eq(index);
+					kwick = $this.data('kwicks');
+					
+				// assume this is the container
+				if (kwick) {
+					index = typeof index === 'number' && index >= 0 ? index : -1;
 				}
-				// otherwise `this` should be a panel already
-				else if ($this.parent().is('.kwicks-processed')) {
-					// don't need panel in this scenario
-					$panel = $this;
-					index = $panel.index();
-				}
-				// if it's not a container or a panel, then this was an erroneous method call
+				// otherwise, assume we have a panel
 				else {
-					throw new Error('Cannot call "expand" method on a non-Kwicks element');
+					kwick = $this.parent().data('kwicks');
+					index = $this.index();
 				}
 
-				// try to trigger on panel, but default to container if panel doesn't exist
-				var $target = ($panel && $panel.length) ? $panel : $this;
-				$target.trigger('select.kwicks', { index: index });				
+				var $panels = kwick.$panels,
+					selected = index >= 0 ? $panels.get(index) : null,
+					unselected = $panels.not(selected).get(),
+					oldIndex = kwick.selectedIndex,
+					oldSelected = oldIndex >= 0 ? $panels.get(oldIndex) : null;
+
+				var data = {
+					index: index,
+					selected: selected,
+					unselected: unselected,
+					oldIndex: oldIndex,
+					oldSelected: oldSelected
+				};
+
+				kwick.$container.trigger('select.kwicks', data);		
 			});
 		},
 		selected: function() {
@@ -161,11 +169,8 @@
 	$.event.special.expand = {
 		_default: function(e, data) {
 			if (e.namespace !== 'kwicks') return;
-			var $el = $(e.target);
-			var kwick = $el.data('kwicks') || $el.parent().data('kwicks');
-			// should we throw here?
-			if (!kwick) return;
-			kwick.expand(data.index);
+			var kwick = $(e.target).data('kwicks');
+			if (kwick) kwick.expand(data.index);
 		}
 	};
 
@@ -175,11 +180,8 @@
 	$.event.special.select = {
 		_default: function(e, data) {
 			if (e.namespace !== 'kwicks') return;
-			var $el = $(e.target);
-			var kwick = $el.data('kwicks') || $el.parent().data('kwicks');
-			// should we throw here?
-			if (!kwick) return;
-			kwick.select(data.index);
+			var kwick = $(e.target).data('kwicks');
+			if (kwick) kwick.select(data.index);
 		}
 	};
 
