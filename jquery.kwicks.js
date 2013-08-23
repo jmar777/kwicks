@@ -492,21 +492,28 @@
 	 *  Gets a reference to the currently expanded panel (if there is one)
 	 */
 	Kwick.prototype.getExpandedPanel = function() {
-		return this.expandedIndex === -1 ? $([]) : this.$panels.eq(this.expandedIndex);
+		return this.$panels[this.expandedIndex] || null;
 	};
 
 	/**
-	 *  Gets a reference to the currently collapsed panels (if there is any)
+	 *  Gets a reference to the currently collapsed panels
 	 */
 	Kwick.prototype.getCollapsedPanels = function() {
-		return this.expandedIndex === -1 ? $([]) : this.$panels.not(this.getExpandedPanel());
+		return this.$panels.not(this.getExpandedPanel()).get();
 	};
 
 	/**
 	 *  Gets a reference to the currently selected panel (if there is one)
 	 */
 	Kwick.prototype.getSelectedPanel = function() {
-		return this.selectedIndex === -1 ? $([]) : this.$panels.eq(this.selectedIndex);
+		return this.$panels[this.selectedIndex] || null;
+	};
+
+	/**
+	 * Gets a reference to the currently unselected panels
+	 */
+	Kwick.prototype.getUnselectedPanels = function() {
+		return this.$panels.not(this.getSelectedPanel()).get();
 	};
 
 	/**
@@ -540,9 +547,9 @@
 			return this.expand(index);
 		}
 
-		this.getSelectedPanel().removeClass('kwicks-selected');
+		$(this.getSelectedPanel()).removeClass('kwicks-selected');
 		this.selectedIndex = index;
-		this.getSelectedPanel().addClass('kwicks-selected');
+		$(this.getSelectedPanel()).addClass('kwicks-selected');
 		this.expand(index);
 	};
 
@@ -559,11 +566,11 @@
 		// make sure the panel isn't already expanded
 		if (index === this.expandedIndex) return;
 
-		this.getExpandedPanel().removeClass('kwicks-expanded');
-		this.getCollapsedPanels().removeClass('kwicks-collapsed');
+		$(this.getExpandedPanel()).removeClass('kwicks-expanded');
+		$(this.getCollapsedPanels()).removeClass('kwicks-collapsed');
 		this.expandedIndex = index;
-		this.getExpandedPanel().addClass('kwicks-expanded');
-		this.getCollapsedPanels().addClass('kwicks-collapsed');
+		$(this.getExpandedPanel()).addClass('kwicks-expanded');
+		$(this.getCollapsedPanels()).addClass('kwicks-collapsed');
 
 		// handle panel animation
 		var $timer = this.$timer,
