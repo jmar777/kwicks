@@ -69,7 +69,7 @@
 
 				// assume this is the container
 				if (kwick) {
-					index = typeof index === 'number' && index >= 0 ? index : -1;
+					index = typeof index === 'number' ? index : -1;
 				}
 				// otherwise, assume we have a panel
 				else {
@@ -78,20 +78,16 @@
 				}
 
 				var $panels = kwick.$panels,
-					expanded = index >= 0 ? $panels.get(index) : null,
-					collapsed = $panels.not(expanded).get(),
-					oldIndex = kwick.expandedIndex,
-					oldExpanded = oldIndex >= 0 ? $panels.get(oldIndex) : null;
+					expanded = $panels[index] || null;
 
-				var data = {
+				kwick.$container.trigger('expand.kwicks', {
 					index: index,
 					expanded: expanded,
-					collapsed: collapsed,
-					oldIndex: oldIndex,
-					oldExpanded: oldExpanded
-				};
-
-				kwick.$container.trigger('expand.kwicks', data);
+					collapsed: $panels.not(expanded).get(),
+					oldIndex: kwick.expandedIndex,
+					oldExpanded: kwick.getExpandedPanel(),
+					isAnimated: kwick.isAnimated
+				});
 			});
 		},
 		expanded: function() {
@@ -103,10 +99,10 @@
 			return this.each(function() {
 				var $this = $(this),
 					kwick = $this.data('kwicks');
-					
+				
 				// assume this is the container
 				if (kwick) {
-					index = typeof index === 'number' && index >= 0 ? index : -1;
+					index = typeof index === 'number' ? index : -1;
 				}
 				// otherwise, assume we have a panel
 				else {
@@ -115,20 +111,15 @@
 				}
 
 				var $panels = kwick.$panels,
-					selected = index >= 0 ? $panels.get(index) : null,
-					unselected = $panels.not(selected).get(),
-					oldIndex = kwick.selectedIndex,
-					oldSelected = oldIndex >= 0 ? $panels.get(oldIndex) : null;
+					selected = $panels[index] || null;
 
-				var data = {
+				kwick.$container.trigger('select.kwicks', {
 					index: index,
 					selected: selected,
-					unselected: unselected,
-					oldIndex: oldIndex,
-					oldSelected: oldSelected
-				};
-
-				kwick.$container.trigger('select.kwicks', data);		
+					unselected: $panels.not(selected).get(),
+					oldIndex: kwick.selectedIndex,
+					oldSelected: kwick.getSelectedPanel()
+				});
 			});
 		},
 		selected: function() {
@@ -215,6 +206,9 @@
 
 		// object for creating a "master" animation loop for all panel animations
 		this.$timer = $({ progress: 0 });
+
+		// keeps track of whether or not an animation is in progress
+		this.isAnimated = false;
 
 		// the current offsets for each panel
 		this.offsets = this.getOffsetsForExpanded();
@@ -557,7 +551,10 @@
 	 *  Expands the panel with the specified index (use -1 to expand none)
 	 */
 	Kwick.prototype.expand = function(index) {
-		var self = this;
+		var self = this,
+			// used for expand-complete event later on
+			oldIndex = this.expandedIndex,
+			oldExpanded = this.getExpandedPanel();
 
 		// if the index is -1, then default it to the currently selected index (which will also be
 		// -1 if no panels are currently selected)
@@ -585,6 +582,7 @@
 			duration: this.opts.duration,
 			easing: this.opts.easing,
 			step: function(progress) {
+				// check if we've resized mid-animation (yes, we're thorough)
 				if (self._dirtyOffsets) {
 					offsets = self.offsets;
 					targetOffsets = self.getOffsetsForExpanded();
@@ -600,6 +598,15 @@
 			},
 			complete:  function() {
 				self.isAnimated = false;
+				self.$container.trigger('expand-complete.kwicks', {
+					index: index,
+					expanded: self.getExpandedPanel(),
+					collapsed: self.getCollapsedPanels(),
+					oldIndex: oldIndex,
+					oldExpanded: oldExpanded,
+					// note: this will always be false but is included to match expand event
+					isAnimated: false
+				});
 			}
 		});
 	};
