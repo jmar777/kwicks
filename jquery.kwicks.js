@@ -63,6 +63,8 @@
 			});
 		},
 		expand: function(index) {
+			var self = this;
+			
 			return this.each(function() {
 				var $this = $(this),
 					kwick = $this.data('kwicks');
@@ -72,9 +74,10 @@
 					index = typeof index === 'number' ? index : -1;
 				}
 				// otherwise, assume we have a panel
-				else {
-					kwick = $this.parent().data('kwicks');
+				else if (kwick = $this.parent().data('kwicks')) {
 					index = $this.index();
+				} else {
+					return;
 				}
 
 				var $panels = kwick.$panels,
@@ -92,7 +95,7 @@
 		},
 		expanded: function() {
 			var kwick = this.first().data('kwicks');
-			if (!kwick) throw new Error('Cannot called "expanded" method on a non-Kwicks element');
+			if (!kwick) return;
 			return kwick.expandedIndex;
 		},
 		select: function(index) {
@@ -105,9 +108,10 @@
 					index = typeof index === 'number' ? index : -1;
 				}
 				// otherwise, assume we have a panel
-				else {
-					kwick = $this.parent().data('kwicks');
+				else if (kwick = $this.parent().data('kwicks')) {
 					index = $this.index();
+				} else {
+					return;
 				}
 
 				var $panels = kwick.$panels,
@@ -124,7 +128,7 @@
 		},
 		selected: function() {
 			var kwick = this.first().data('kwicks');
-			if (!kwick) throw new Error('Cannot called "selected" method on a non-Kwicks element');
+			if (!kwick) return;
 			return kwick.selectedIndex;
 		},
 		resize: function(index) {
@@ -132,9 +136,7 @@
 				var $this = $(this),
 					kwick = $this.data('kwicks');
 
-				if (!kwick) {
-					throw new Error('Cannot called "resize" method on a non-Kwicks element');
-				}
+				if (!kwick) return;
 
 				kwick.resize();
 			});
@@ -144,9 +146,7 @@
 				var $this = $(this),
 					kwick = $this.data('kwicks');
 
-				if (!kwick) {
-					throw new Error('Cannot call "destroy" method on a non-Kwicks element');
-				}
+				if (!kwick) return;
 
 				kwick.destroy();
 			});
