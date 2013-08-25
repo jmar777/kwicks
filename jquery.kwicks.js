@@ -138,6 +138,18 @@
 
 				kwick.resize();
 			});
+		},
+		destroy: function() {
+			return this.each(function() {
+				var $this = $(this),
+					kwick = $this.data('kwicks');
+
+				if (!kwick) {
+					throw new Error('Cannot call "destroy" method on a non-Kwicks element');
+				}
+
+				kwick.destroy();
+			});
 		}
 	};
 
@@ -180,12 +192,28 @@
 	 *  Instantiates a new Kwick instance using the provided container and options.
 	 */
 	var Kwick = function Kwick(container, opts) {
+		var self = this;
+
 		this.opts = opts;
+
+		// an array of callbacks to invoke if 'destroy' is invoked
+		this.onDestroyHandlers = [];
 
 		// references to our DOM elements
 		var orientation = opts.isVertical ? 'vertical' : 'horizontal';
-		this.$container = $(container).addClass('kwicks').addClass('kwicks-' + orientation);
+		this.$container = $(container);
 		this.$panels = this.$container.children();
+
+		// semi-smart add/remove around container classes so that we don't bork
+		// the styling if/when destroy is called
+		var containerClasses = ['kwicks', 'kwicks-' + orientation];
+		$.each(containerClasses, function(className) {
+			if (self.$container.hasClass(className)) return;
+			self.$container.addClass(className);
+			self.onDestroy(function() {
+				self.$container.removeClass(className);
+			});
+		});
 
 		// zero-based, -1 for "none"
 		this.selectedIndex = this.$panels.filter('.kwicks-selected').index();
@@ -395,12 +423,25 @@
 	 */
 	Kwick.prototype.initMenuBehavior = function() {
 		var self = this;
-		this.$container.on('mouseleave', function() {
+
+		var mouseleave = function() {
 			self.$container.kwicks('expand', -1);
-		}).children().on('mouseover', function() {
+		};
+
+		var mouseenter = function() {
 			$(this).kwicks('expand');
-		}).click(function() {
+		};
+
+		var click = function() {
 			$(this).kwicks('select');
+		};
+
+		this.$container.on('mouseleave', mouseleave)
+			.children().on('mouseenter', mouseenter).on('click', click);
+
+		this.onDestroy(function() {
+			self.$container.off('mouseleave', mouseleave)
+			.children().off('mouseenter', mouseenter).off('click', click);
 		});
 	};
 
@@ -422,19 +463,27 @@
 			}, self.opts.interval);
 			running = true;
 		};
-		start();
-
-		if (!this.opts.interactive) return;
-
 		var pause = function() {
 			clearInterval(intervalId);
 			running = false;
 		};
 
-		this.$container.hover(pause, start)
-			.children().on('mouseover', function() {
-				curSlide = $(this).kwicks('expand').index();
-			});
+		start();
+		this.onDestroy(pause);
+
+		if (!this.opts.interactive) return;
+		
+		var expander = function() {
+			curSlide = $(this).kwicks('expand').index();
+		};
+
+		this.$container.on('mouseenter', pause).on('mouseleave', start)
+			.children().on('mouseenter', expander);
+
+		this.onDestroy(function() {
+			self.$container.off('mouseenter', pause).off('mouseleave', start)
+				.children().off('mouseenter', expander);
+		});
 	};
 
 	/**
@@ -446,7 +495,8 @@
 
 		var self = this,
 			prevTime = 0,
-			execScheduled = false;
+			execScheduled = false,
+			$window = $(window);
 
 		var onResize = function(e) {
 			// if there's no event, then this is a scheduled from our setTimeout
@@ -466,7 +516,10 @@
 			prevTime = now;
 			self.resize();			
 		}
-		$(window).on('resize', onResize);
+		$window.on('resize', onResize);
+		this.onDestroy(function() {
+			$window.off('resize', onResize);
+		});
 	};
 
 	/**
@@ -508,6 +561,36 @@
 	 */
 	Kwick.prototype.getUnselectedPanels = function() {
 		return this.$panels.not(this.getSelectedPanel()).get();
+	};
+
+	/**
+	 * Registers a handler to be invoked if/when 'destroy' is invoked
+	 */
+	Kwick.prototype.onDestroy = function(handler) {
+		this.onDestroyHandlers.push(handler);
+	};
+
+	/**
+	 * "Destroys" this Kwicks instance plugin by performing the following:
+	 * 1) Stops any currently running animations
+	 * 2) Invokes all destroy handlers
+	 * 3) Clears out all style attributes on panels
+	 * 4) Removes all kwicks class names from panels and container
+	 * 5) Removes the 'kwicks' data value from the container
+	 */
+	Kwick.prototype.destroy = function(handler) {
+		this.$timer.stop();
+		for (var i = 0, len = this.onDestroyHandlers.length; i < len; i++) {
+			this.onDestroyHandlers[i]();
+		}
+		this.$panels
+			.attr('style', '')
+			.removeClass('kwicks-expanded kwicks-selected kwicks-collapsed');
+		this.$container
+			// note: kwicks and kwicks-<orientation> classes have extra smarts around them
+			// back in the constructor
+			.removeClass('kwicks-processed')
+			.removeData('kwicks');
 	};
 
 	/**
