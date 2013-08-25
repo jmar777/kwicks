@@ -88,6 +88,9 @@
 				}
 
 				var expand = function() {
+					// bail out if the panel is already expanded
+					if (index === kwick.expandedIndex) return;
+
 					var $panels = kwick.$panels,
 						expanded = $panels[index] || null;
 
@@ -134,16 +137,22 @@
 					return;
 				}
 
-				var $panels = kwick.$panels,
-					selected = $panels[index] || null;
+				// don't trigger event if its already selected
+				if (index !== kwick.selectedIndex) {
+					var $panels = kwick.$panels,
+						selected = $panels[index] || null;
 
-				kwick.$container.trigger('select.kwicks', {
-					index: index,
-					selected: selected,
-					unselected: $panels.not(selected).get(),
-					oldIndex: kwick.selectedIndex,
-					oldSelected: kwick.getSelectedPanel()
-				});
+					kwick.$container.trigger('select.kwicks', {
+						index: index,
+						selected: selected,
+						unselected: $panels.not(selected).get(),
+						oldIndex: kwick.selectedIndex,
+						oldSelected: kwick.getSelectedPanel()
+					});
+				}
+
+				// call expand
+				kwick.$container.kwicks('expand', index);
 			});
 		},
 		selected: function() {
@@ -449,7 +458,7 @@
 		};
 
 		var mouseenter = function() {
-			$(this).kwicks('expand');
+			$(this).kwicks('expand', { delay: 3000 });
 		};
 
 		var click = function() {
@@ -634,20 +643,15 @@
 	};
 
 	/**
-	 *  Selects (and expands) the panel with the specified index (use -1 to select none)
+	 *  Selects the panel with the specified index (use -1 to select none)
 	 */
 	Kwick.prototype.select = function(index) {
 		// make sure the panel isn't already selected
-		if (index === this.selectedIndex) {
-			// it's possible through the API to have a panel already selected but not expanded,
-			// so ensure that the panel really is expanded
-			return this.expand(index);
-		}
+		if (index === this.selectedIndex) return;
 
 		$(this.getSelectedPanel()).removeClass('kwicks-selected');
 		this.selectedIndex = index;
 		$(this.getSelectedPanel()).addClass('kwicks-selected');
-		this.expand(index);
 	};
 
 	/**
