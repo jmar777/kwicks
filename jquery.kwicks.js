@@ -25,7 +25,12 @@
 				easing: undefined,
 				autoResize: true,
 				behavior: null,
-				//slideshow options:
+				// menu behavior options:
+				delayMouseIn: 0,
+				delayMouseOut: 0,
+				selectOnClick: true,
+				deselectOnClick: false,
+				// slideshow behavior options:
 				interval: 2500,
 				interactive: true
 			};
@@ -451,26 +456,38 @@
 	 * Initializes the menu behavior.
 	 */
 	Kwick.prototype.initMenuBehavior = function() {
-		var self = this;
+		var self = this,
+			opts = self.opts;
 
 		var mouseleave = function() {
-			self.$container.kwicks('expand', -1);
+			self.$container.kwicks('expand', -1, { delay: opts.delayMouseOut });
 		};
-
 		var mouseenter = function() {
-			$(this).kwicks('expand', { delay: 3000 });
+			$(this).kwicks('expand', { delay: opts.delayMouseIn });
 		};
-
 		var click = function() {
-			$(this).kwicks('select');
+			var $this = $(this);
+			if (!$this.hasClass('kwicks-selected')) {
+				$this.kwicks('select');
+			} else if (opts.deselectOnClick) {
+				$this.parent().kwicks('select', -1);
+			}
 		};
 
-		this.$container.on('mouseleave', mouseleave)
-			.children().on('mouseenter', mouseenter).on('click', click);
+		this.$container.on('mouseleave', mouseleave);
+		this.$panels.on('mouseenter', mouseenter);
+
+		if (opts.selectOnClick) {
+			this.$panels.on('click', click);
+		}
 
 		this.onDestroy(function() {
-			self.$container.off('mouseleave', mouseleave)
-			.children().off('mouseenter', mouseenter).off('click', click);
+			self.$container.off('mouseleave', mouseleave);
+			self.$panels.off('mouseenter', mouseenter);
+
+			if (opts.selectOnClick) {
+				self.$panels.off('click', click);
+			}
 		});
 	};
 
