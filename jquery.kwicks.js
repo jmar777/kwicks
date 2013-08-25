@@ -62,8 +62,15 @@
 				$(this).data('kwicks', new Kwick(this, o));
 			});
 		},
-		expand: function(index) {
+		expand: function(index, opts) {
 			var self = this;
+
+			if (typeof index === 'object') {
+				opts = index;
+				index = undefined;
+			}
+
+			var delay = opts && opts.delay || 0;
 			
 			return this.each(function() {
 				var $this = $(this),
@@ -80,17 +87,30 @@
 					return;
 				}
 
-				var $panels = kwick.$panels,
-					expanded = $panels[index] || null;
+				var expand = function() {
+					var $panels = kwick.$panels,
+						expanded = $panels[index] || null;
 
-				kwick.$container.trigger('expand.kwicks', {
-					index: index,
-					expanded: expanded,
-					collapsed: $panels.not(expanded).get(),
-					oldIndex: kwick.expandedIndex,
-					oldExpanded: kwick.getExpandedPanel(),
-					isAnimated: kwick.isAnimated
-				});
+					kwick.$container.trigger('expand.kwicks', {
+						index: index,
+						expanded: expanded,
+						collapsed: $panels.not(expanded).get(),
+						oldIndex: kwick.expandedIndex,
+						oldExpanded: kwick.getExpandedPanel(),
+						isAnimated: kwick.isAnimated
+					});
+				};
+
+				var timeoutId = kwick.$container.data('kwicks-timeout-id');
+				if (timeoutId) {
+					kwick.$container.removeData('kwicks-timeout-id');
+					clearTimeout(timeoutId);
+				}
+				if (delay > 0) {
+					kwick.$container.data('kwicks-timeout-id', setTimeout(expand, delay));
+				} else {
+					expand();
+				}
 			});
 		},
 		expanded: function() {
