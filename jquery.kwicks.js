@@ -459,34 +459,24 @@
 		var self = this,
 			opts = self.opts;
 
-		var mouseleave = function() {
+		this.addEventHandler(this.$container, 'mouseleave', function() {
 			self.$container.kwicks('expand', -1, { delay: opts.delayMouseOut });
-		};
-		var mouseenter = function() {
+		});
+
+		this.addEventHandler(this.$panels, 'mouseenter', function() {
 			$(this).kwicks('expand', { delay: opts.delayMouseIn });
-		};
-		var click = function() {
-			var $this = $(this);
-			if (!$this.hasClass('kwicks-selected')) {
-				$this.kwicks('select');
-			} else if (opts.deselectOnClick) {
+		});
+
+		if (!opts.selectOnClick && !opts.deselectOnClick) return;
+
+		this.addEventHandler(this.$panels, 'click', function() {
+			var $this = $(this),
+				isSelected = $this.hasClass('kwicks-selected');
+
+			if (isSelected && opts.deselectOnClick) {
 				$this.parent().kwicks('select', -1);
-			}
-		};
-
-		this.$container.on('mouseleave', mouseleave);
-		this.$panels.on('mouseenter', mouseenter);
-
-		if (opts.selectOnClick) {
-			this.$panels.on('click', click);
-		}
-
-		this.onDestroy(function() {
-			self.$container.off('mouseleave', mouseleave);
-			self.$panels.off('mouseenter', mouseenter);
-
-			if (opts.selectOnClick) {
-				self.$panels.off('click', click);
+			} else if (!isSelected && opts.selectOnClick) {
+				$this.kwicks('select');
 			}
 		});
 	};
@@ -518,17 +508,11 @@
 		this.onDestroy(pause);
 
 		if (!this.opts.interactive) return;
-		
-		var expander = function() {
+
+		this.addEventHandler(this.$container, 'mouseenter', pause);
+		this.addEventHandler(this.$container, 'mouseleave', start);
+		this.addEventHandler(this.$panels, 'mouseenter', function() {
 			curSlide = $(this).kwicks('expand').index();
-		};
-
-		this.$container.on('mouseenter', pause).on('mouseleave', start)
-			.children().on('mouseenter', expander);
-
-		this.onDestroy(function() {
-			self.$container.off('mouseenter', pause).off('mouseleave', start)
-				.children().off('mouseenter', expander);
 		});
 	};
 
@@ -562,10 +546,8 @@
 			prevTime = now;
 			self.resize();			
 		}
-		$window.on('resize', onResize);
-		this.onDestroy(function() {
-			$window.off('resize', onResize);
-		});
+
+		this.addEventHandler($window, 'resize', onResize);
 	};
 
 	/**
@@ -614,6 +596,17 @@
 	 */
 	Kwick.prototype.onDestroy = function(handler) {
 		this.onDestroyHandlers.push(handler);
+	};
+
+	/**
+	 * Adds an event handler and automatically registers it to be removed if/when
+	 * the plugin is destroyed.
+	 */
+	Kwick.prototype.addEventHandler = function($el, eventName, handler) {
+		$el.on(eventName, handler);
+		this.onDestroy(function() {
+			$el.off(eventName, handler);
+		});
 	};
 
 	/**
