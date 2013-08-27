@@ -574,6 +574,7 @@
 	 *  Gets a reference to the currently collapsed panels
 	 */
 	Kwick.prototype.getCollapsedPanels = function() {
+		if (this.expandedIndex === -1) return [];
 		return this.$panels.not(this.getExpandedPanel()).get();
 	};
 
@@ -588,6 +589,7 @@
 	 * Gets a reference to the currently unselected panels
 	 */
 	Kwick.prototype.getUnselectedPanels = function() {
+		if (this.selectedIndex === -1) return [];
 		return this.$panels.not(this.getSelectedPanel()).get();
 	};
 

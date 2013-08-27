@@ -17,6 +17,7 @@
 				margin-left: 5px;
 				float: left;
 			}
+			.kwicks > li.kwicks-collapsed { background-color: #319155; }
 			.kwicks > li.kwicks-expanded { background-color: #86e6bb; }
 			.kwicks > li.kwicks-selected { background-color: #ff7744; }
 		</style>
@@ -38,7 +39,8 @@
 				$('.kwicks').kwicks({
 					maxSize : 250,
 					spacing : 5,
-					behavior: 'menu'
+					behavior: 'menu',
+					deselectOnClick: true
 				});
 			});
 		</script>
