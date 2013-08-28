@@ -53,7 +53,7 @@
 							o[prop] = +val.slice(0, -1) / 100;
 						} else if (val.slice(-2) === 'px') {
 							o[prop + 'Units'] = 'px';
-							o[prop] = +val.slice(0, -2);	
+							o[prop] = +val.slice(0, -2);
 						} else {
 							throw new Error('Invalid value for Kwicks option ' + prop + ': ' + val);
 						}
@@ -68,8 +68,6 @@
 			});
 		},
 		expand: function(index, opts) {
-			var self = this;
-
 			if (typeof index === 'object') {
 				opts = index;
 				index = undefined;
@@ -165,7 +163,7 @@
 			if (!kwick) return;
 			return kwick.selectedIndex;
 		},
-		resize: function(index) {
+		resize: function() {
 			return this.each(function() {
 				var $this = $(this),
 					kwick = $this.data('kwicks');
@@ -275,7 +273,7 @@
 		// the current offsets for each panel
 		this.offsets = this.getOffsetsForExpanded();
 
-		this.initStyles();
+		this.updatePanelStyles();
 		this.initBehavior();
 		this.initWindowResizeHandler();
 	};
@@ -420,20 +418,6 @@
 	};
 
 	/**
-	 *  Sets initial styles on the container element and panels
-	 */
-	Kwick.prototype.initStyles = function() {
-		var opts = this.opts,
-			$container = this.$container,
-			$panels = this.$panels,
-			numPanels = $panels.length,
-			pDim = this.primaryDimension,
-			sDim = this.secondaryDimension;
-
-		this.updatePanelStyles();
-	};
-
-	/**
 	 *  Assuming for a moment that out-of-the-box behaviors aren't a horrible idea, this method
 	 *  encapsulates the initialization logic thereof.
 	 */
@@ -544,8 +528,8 @@
 
 			// throttle rate is satisfied, go ahead and run
 			prevTime = now;
-			self.resize();			
-		}
+			self.resize();
+		};
 
 		this.addEventHandler($window, 'resize', onResize);
 	};
@@ -618,7 +602,7 @@
 	 * 4) Removes all kwicks class names from panels and container
 	 * 5) Removes the 'kwicks' data value from the container
 	 */
-	Kwick.prototype.destroy = function(handler) {
+	Kwick.prototype.destroy = function() {
 		this.$timer.stop();
 		for (var i = 0, len = this.onDestroyHandlers.length; i < len; i++) {
 			this.onDestroyHandlers[i]();
@@ -636,7 +620,7 @@
 	/**
 	 *  Forces the panels to be updated in response to the container being resized.
 	 */
-	Kwick.prototype.resize = function(index) {
+	Kwick.prototype.resize = function() {
 		// bail out if container size hasn't changed
 		if (this.getContainerSize() === this.getContainerSize(true)) return;
 
