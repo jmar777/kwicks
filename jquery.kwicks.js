@@ -589,7 +589,6 @@
 	 * Gets a reference to the currently unselected panels
 	 */
 	Kwick.prototype.getUnselectedPanels = function() {
-		if (this.selectedIndex === -1) return [];
 		return this.$panels.not(this.getSelectedPanel()).get();
 	};
 
