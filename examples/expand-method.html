@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Kwicks Expand Method Example</title>
+
+		<link rel='stylesheet' type='text/css' href='../jquery.kwicks.css' />
+		<style type='text/css'>
+			.kwicks {
+				width: 460px;
+				height: 100px;
+			}
+			.kwicks > li {
+				height: 100px;
+				/* overridden by kwicks but good for when JavaScript is disabled */
+				width: 150px;
+				margin-left: 5px;
+				float: left;
+				background-color: #333;
+			}
+			.kwicks > li.kwicks-expanded {
+				background-color: #777;
+			}
+
+			#expand-controls {
+				font-size: 1.2em;
+				margin-top: 20px;
+			}
+
+		</style>
+	</head>
+	
+	<body>
+		<ul class='kwicks kwicks-horizontal'>
+			<li></li>
+			<li></li>
+			<li></li>
+		</ul>
+
+		<div id='expand-controls'>
+			<strong>Expand: </strong>
+			<a href='#' data-index='0'>panel 1</a>,
+			<a href='#' data-index='1'>panel 2</a>,
+			<a href='#' data-index='2'>panel 3</a>, or
+			<a href='#' data-index='-1'>none</a>.
+		</div>
+
+		<script src='js/jquery-1.8.1.min.js' type='text/javascript'></script>
+		<script src='../jquery.kwicks.js' type='text/javascript'></script>
+		
+		<script type='text/javascript'>
+			$(function() {
+				var $container = $('.kwicks').kwicks({
+					maxSize : 250,
+					spacing : 5
+				});
+
+				$('#expand-controls a').click(function(e) {
+					e.preventDefault();
+					var index = $(this).data('index');
+					$container.kwicks('expand', index);
+				});
+			});
+		</script>
+	</body>
+</html>
