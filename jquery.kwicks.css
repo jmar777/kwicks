@@ -1,5 +1,5 @@
 /*!
- *  Kwicks: Sexy Sliding Panels for jQuery - v2.2.0
+ *  Kwicks: Sexy Sliding Panels for jQuery - v2.2.1
  *  http://devsmash.com/projects/kwicks
  *
  *  Copyright 2013 Jeremy Martin (jmar777)
