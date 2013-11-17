@@ -276,6 +276,12 @@
 		this.updatePanelStyles();
 		this.initBehavior();
 		this.initWindowResizeHandler();
+
+		// somewhat of a blind stab at handling rare/sporadic failures to initialize styles.
+		// https://github.com/jmar777/kwicks/issues/31
+		setTimeout(function() {
+			self.updatePanelStyles();
+		}, 100);
 	};
 
 	/**
